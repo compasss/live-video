@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>视频下载</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" type="text/css" href="{% static 'vdl/bootstrap-3.3.7/css/bootstrap.min.css' %}">
+  <link rel="icon" type="image/x-icon" href="https://q.265265.xyz/imgs/ico/ico-video.ico">
+  <style>
+      .wrapper{
+          padding: 20px;
+      }
+      .m-t-20{
+          margin-top: 20px;
+      }
+  </style>
+</head>
+<body class="wrapper">
+<div class="row">
+  <div class="col-lg-12">
+    <div class="input-group">
+      <input id="url" type="text" class="form-control" placeholder="粘贴视频url,不要换行">
+      <span class="input-group-btn">
+        <button id="search" class="btn btn-success" type="button">搜索</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-primary m-t-20">
+  <!-- Default panel contents -->
+  <div class="panel-heading">视频信息</div>
+  <div class="panel-body">
+    <p id="title"></p>
+  </div>
+
+  <!-- Table -->
+  <table id="result" class="table">
+    <thead>
+    <tr>
+      <th>分辨率</th>
+      <th>大小</th>
+      <th>文件格式</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="content"></tbody>
+  </table>
+</div>
+<script src="{% static 'vdl/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'vdl/bootstrap-3.3.7/js/bootstrap.js' %}"></script>
+<script src="{% static 'vdl/layer-v3.3.0/layer.js' %}"></script>
+<script>
+  $(function() {
+    var loadNum = 0;
+    $("#search").on('click', function(ev) {
+      var url = $("#url").val().trim()
+      if (!url) return;
+      loadNum = layer.load(2)
+      $.ajax({
+        url: '/vdownload/video/detail?url=' + url,
+        method: 'GET',
+        success: function (response) {
+          var res = []
+          try{
+            res = JSON.parse(response)
+          } catch (e) {
+            console.error(e)
+          }
+          var data = (res && res.length) ? res[0] : []
+          showContent(data)
+          layer.close(loadNum)
+        },
+        error: function (err) {
+          console.error(err);
+          $('#content').empty();
+          layer.close(loadNum)
+        }
+      })
+    })
+    function showContent(data) {
+      $('#content').empty()
+      $("#title").text(data.title || '未获取到标题')
+
+      Object.keys(data.streams).forEach(function(key) {
+        var it = data.streams[key];
+        var parent = $("<tr></tr>")
+        $('<td/>', {
+          'text': it.quality,
+        }).appendTo(parent)
+        $('<td/>', {
+          'text': (it.size/1024/1024).toFixed(2) + 'M',
+        }).appendTo(parent)
+        $('<td/>', {
+          'text': it.parts[0].ext,
+        }).appendTo(parent)
+        var tdP = $('<td></td>')
+        $('<a/>', {
+          'href': it.parts[0].url,
+          'text': '下载',
+          'download': data.title + '.' + it.parts[0].ext
+        }).appendTo(tdP)
+        parent.append(tdP)
+        $("#content").append(parent)
+      })
+
+    }
+  })
+</script>
+</body>
+</html>

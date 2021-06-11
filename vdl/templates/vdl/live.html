@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>直播搜索</title>
+  <link href="http://q.265265.xyz/js/lib/videojs/7.10.2/video-js.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="icon" type="image/x-icon" href="https://q.265265.xyz/imgs/ico/ico-video.ico">
+  <style type="text/css">
+    .video-js{
+      width: 100%;
+      text-align: center;
+    }
+    .search-w{
+      display: flex;
+      align-items: center;
+    }
+    .v-url{
+      width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-w">
+    <video-js id="my-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" width="1080" height="708"></video-js>
+  </div>
+  <div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="请输入房间号" aria-label="请输入房间号" aria-describedby="button-search" id="room-id">
+    <select class="form-select" aria-label="Default select example" id="channel">
+      <option value="huya" selected>虎牙</option>
+      <option value="douyu">斗鱼</option>
+    </select>
+    <button class="btn btn-primary" type="button" id="button-search" style="width: 200px">搜索</button>
+  </div>
+
+  <div class="input-group mb-3">
+    <select class="form-select" id="urls"></select>
+    <button class="btn btn-primary" type="button" id="play-b" style="width: 200px">播放</button>
+  </div>
+
+  <script src="http://q.265265.xyz/js/lib/videojs/7.10.2/video.min.js"></script>
+  <script src="https://q.265265.xyz/js/lib/videojs-http-streaming/2.8.2/videojs-http-streaming.min.js"></script>
+  <script src="{% static 'vdl/jquery-3.6.0.min.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  <script>
+    document.onreadystatechange = function() {
+      if (document.readyState === 'complete') {
+        initPlay()
+      }
+    };
+
+    function initPlay() {
+      var options = {
+        controls: true,
+        autoplay: false,
+        preload: 'auto'
+      };
+
+      var player = videojs('my-player', options, function onPlayerReady() {
+        videojs.log('Your player is ready!');
+
+        // In this context, `this` is the player that was created by Video.js.
+        // this.play();
+
+        // How about an event listener?
+        this.on('ended', function() {
+          videojs.log('Awww...over so soon?!');
+        });
+      });
+        $("#button-search").on('click', function(ev) {
+            var id = $("#room-id").val()
+            var channel = $("#channel").val()
+            $.ajax({
+                url: '/vdownload/video/live-urls?id=' + id + '&channel=' + channel,
+                method: 'GET',
+                success: function (res) {
+                    console.log(res)
+                    Object.keys(res).forEach(function (key) {
+                        $("#urls").append('<option value="' + res[key] + '">' + key + '</option>')
+                    })
+                }
+            })
+        })
+        $("#play-b").on('click', function () {
+            let url = $("#urls").val()
+            if (!url) {
+                return;
+            }
+            player.src({
+              src: url,
+              type: 'application/x-mpegURL',
+              withCredentials: true
+            });
+            player.play()
+        })
+    }
+  </script>
+</body>
+</html>
