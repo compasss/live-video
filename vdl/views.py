@@ -29,7 +29,7 @@ def live(request):
 
 
 def live_urls(request):
-    urls = service.LiveUrlService().get_urls(request.GET.get('id'))
+    urls = service.LiveUrlService().get_urls(request.GET.get('id'), request.GET.get('channel'))
     print(urls)
     return HttpResponse(json.dumps(urls), content_type='application/json')
 
