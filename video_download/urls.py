@@ -18,5 +18,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('vdownload/admin/', admin.site.urls),
-    path('vdownload/video/', include('vdl.urls'))
+    path('vdownload/video/', include('vdl.urls')),
+    path('vdownload/txbed/', include('txbed.urls'))
 ]
