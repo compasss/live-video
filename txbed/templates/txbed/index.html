@@ -11,15 +11,74 @@
         .wrapper {padding: 20px;}
         .m-t-20 {margin-top: 20px;}
         .sub-btn{margin-top: 20px;width: 100%;}
+        /* Root element */
+        .json-document {
+          padding: 1em 2em;
+        }
+
+        /* Syntax highlighting for JSON objects */
+        ul.json-dict, ol.json-array {
+          list-style-type: none;
+          margin: 0 0 0 1px;
+          border-left: 1px dotted #ccc;
+          padding-left: 2em;
+        }
+        .json-string {
+          color: #0B7500;
+        }
+        .json-literal {
+          color: #1A01CC;
+          font-weight: bold;
+        }
+
+        /* Toggle button */
+        a.json-toggle {
+          position: relative;
+          color: inherit;
+          text-decoration: none;
+        }
+        a.json-toggle:focus {
+          outline: none;
+        }
+        a.json-toggle:before {
+          font-size: 1.1em;
+          color: #c0c0c0;
+          content: "\25BC"; /* down arrow */
+          position: absolute;
+          display: inline-block;
+          width: 1em;
+          text-align: center;
+          line-height: 1em;
+          left: 4px;
+            top: 1px;
+        }
+        a.json-toggle:hover:before {
+          color: #aaa;
+        }
+        a.json-toggle.collapsed:before {
+          /* Use rotated down arrow, prevents right arrow appearing smaller than down arrow in some browsers */
+          transform: rotate(-90deg);
+        }
+
+        /* Collapsable placeholder links */
+        a.json-placeholder {
+          color: #aaa;
+          padding: 0 1em;
+          text-decoration: none;
+        }
+        a.json-placeholder:hover {
+          text-decoration: underline;
+        }
+        .inline-img{width: 200px;height: 200px;object-fit:contain;}
     </style>
 </head>
 <body class="wrapper">
 <div class="row">
     <div class="col-lg-12">
-        <div class="mb-3">
-            <label for="fileName" class="form-label">文件名</label>
-            <input type="text" class="form-control" id="fileName" placeholder="文件名">
-        </div>
+{#        <div class="mb-3">#}
+{#            <label for="fileName" class="form-label">文件名</label>#}
+{#            <input type="text" class="form-control" id="fileName" placeholder="文件名">#}
+{#        </div>#}
         <div class="mb-3">
             <label for="eyeJwt" class="form-label">eyeJwt</label>
             <textarea class="form-control" id="eyeJwt" rows="3"></textarea>
@@ -28,29 +87,39 @@
             <input type="file" class="form-control" id="file" name="file" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
         </div>
     </div>
-    <div class="col-lg-12">
-        <button type="button" class="btn btn-primary sub-btn">上传</button>
-    </div>
+{#    <div class="col-lg-12">#}
+{#        <button type="button" class="btn btn-primary sub-btn">上传</button>#}
+{#    </div>#}
 </div>
 
-<table class="table table-success table-striped-columns">
+<table class="table table-success table-striped-columns m-t-20">
   <thead>
     <tr>
         <th>文件名</th>
         <th>URL</th>
+        <th>图片预览</th>
+        <th>extra</th>
     </tr>
   </thead>
     <tbody>
-        <tr>
-            <td>empty.png</td>
-            <td>https://www.baidu.com</td>
-        </tr>
+        {% for file in file_list %}
+            <tr>
+                <td>{{ file.file_name }}</td>
+                <td><a href="{{ file.url }}" target="_blank">{{ file.url }}</a></td>
+                <td>{% if  file.isImage %}
+                    <image src="{{ file.url }}" class="inline-img"></image>
+                {% endif %}</td>
+                <td data-json="y">{{ file.json }}</td>
+            </tr>
+        {% endfor %}
     </tbody>
 </table>
-
+{% csrf_token %}
 <script src="{% static 'vdl/jquery-3.6.0.min.js' %}"></script>
 <script src="{% static 'txbed/bootstrap-5.2.0/js/bootstrap.js' %}"></script>
 <script src="{% static 'vdl/layer-v3.3.0/layer.js' %}"></script>
+<script src="{% static 'txbed/js.cookie.min.js' %}"></script>
+<script src="{% static 'txbed/json-viewer.js' %}"></script>
 <script>
     $(function () {
         $("#file").on('change', function (res) {
@@ -62,18 +131,24 @@
             data.append('file', files[0]);
 
             $.ajax({
-                url: '/files/upload',
-                method: 'POST',
+                url: '/vdownload/txbed/upload',
+                type: 'POST',
                 data: data,
+                processData: false,
                 contentType: false,
+                cache: false,
+                headers: {
+                    eyeJwt: $("#eyeJwt").val(),
+                    'X-CSRFToken': Cookies.get('csrftoken')
+                },
                 success: function (res) {
-                    console.log(res)
+                    console.log(res.data.url)
                 }
             })
         }
-        function submit() {
-
-        }
+        $("[data-json='y']").each((index, it) => {
+            $(it).jsonViewer(JSON.parse($(it).text()), {collapsed: true, withQuotes: true, withLinks: false})
+        })
     })
 </script>
 </body>
