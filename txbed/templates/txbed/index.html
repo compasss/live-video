@@ -69,7 +69,7 @@
         a.json-placeholder:hover {
           text-decoration: underline;
         }
-        .inline-img{width: 100px;height: 100px;object-fit:contain;}
+        .inline-img{width: 50px;height: 50px;object-fit:contain;}
     </style>
 </head>
 <body class="wrapper">
@@ -109,7 +109,7 @@
                 <td>{% if  file.isImage %}
                     <image src="{{ file.url }}" class="inline-img"></image>
                 {% endif %}</td>
-                <td data-json="y">{{ file.json }}</td>
+                <td data-json="y">{{ file.extra|json_script:file.id }}</td>
             </tr>
         {% endfor %}
     </tbody>
